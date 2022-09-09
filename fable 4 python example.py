@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import abstractmethod
 import tensorflow
 from typing import (Protocol, ByteString, Tuple)
-from fable_modules.fable_library.array import head
+from fable_modules.fable_library.seq import (length, head)
 from fable_modules.fable_library.string import (to_console, interpolate, printf)
 from fable_modules.fable_library.types import Array
 
@@ -58,23 +58,25 @@ class ITensorFlow(Protocol):
 
 tensorflow.config.list_physical_devices("CPU")
 
-pattern_input_004033: Tuple[Tuple[Array[Array[ByteString]], ByteString], Tuple[Array[Array[ByteString]], ByteString]] = tensorflow.keras.datasets.mnist.load_data()
+pattern_input_004037: Tuple[Tuple[Array[Array[ByteString]], ByteString], Tuple[Array[Array[ByteString]], ByteString]] = tensorflow.keras.datasets.mnist.load_data()
 
-label_train: ByteString = pattern_input_004033[0][1]
+label_train: ByteString = pattern_input_004037[0][1]
 
-label_test: ByteString = pattern_input_004033[1][1]
+label_test: ByteString = pattern_input_004037[1][1]
 
-image_train: Array[Array[ByteString]] = pattern_input_004033[0][0]
+image_train: Array[Array[ByteString]] = pattern_input_004037[0][0]
 
-image_test: Array[Array[ByteString]] = pattern_input_004033[1][0]
+image_test: Array[Array[ByteString]] = pattern_input_004037[1][0]
 
-to_console(interpolate("Image count: %P()", [len(image_train)]))
+to_console(interpolate("Image count: %P()", [length(image_train)]))
 
-arg: int = len(head(image_train)) or 0
+arg: int = length(head(image_train)) or 0
 
 to_console(printf("Line count: %A"))(arg)
 
-arg: int = len(head(head(image_train))) or 0
+arg: int = length(head(head(image_train))) or 0
 
 to_console(printf("Column count: %A"))(arg)
+
+image_train_flat: Array[Array[ByteString]] = (None.reshape(None, None))(60000)(784)(image_train)
 
