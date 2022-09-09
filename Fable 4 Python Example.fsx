@@ -9,7 +9,7 @@ type IPhysicalDevice =
 type IConfig =
     abstract list_physical_devices : string -> IPhysicalDevice array
 
-type INDArray<'a> = 'a array
+type INDArray<'a> = 'a seq
 type Image = INDArray<INDArray<uint8>>
 
 type IMnist =
@@ -41,7 +41,7 @@ printfn $"Image count: {(image_train |> Seq.length)}"
 printfn "Line count: %A" (image_train |> Seq.head |> Seq.length)
 printfn "Column count: %A" (image_train |> Seq.head |> Seq.head |> Seq.length)
 
-let image_train_flat = image_train |> NDArray.reshape<_> 60000 784 // / 255f
+// let image_train_flat = image_train |> NDArray.reshape<_> 60000 784 // / 255f
 
 // let image_test_flat = (image_test?reshape(10000,784)) / 255f
 
