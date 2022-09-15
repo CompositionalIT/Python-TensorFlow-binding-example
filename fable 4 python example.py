@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from array import array
 import tensorflow
-from typing import (Protocol, Tuple, Any, List)
+from typing import (Protocol, Tuple, Any, List, Callable)
 from fable_modules.fable_library.reflection import (TypeInfo, class_type, union_type)
 from fable_modules.fable_library.types import (Array, Union)
 
@@ -63,26 +63,9 @@ class ITensors(Union):
 
 ITensors_reflection = _expr1
 
-def _expr2() -> TypeInfo:
-    return union_type("Fable 4 Python Example.IDense", [], IDense, lambda: [[]])
-
-
-class IDense(Union):
-    def __init__(self, tag: int, *fields: Any) -> None:
-        super().__init__()
-        self.tag: int = tag or 0
-        self.fields: Array[Any] = list(fields)
-
-    @staticmethod
-    def cases() -> List[str]:
-        return ["IDense"]
-
-
-IDense_reflection = _expr2
-
 class Layers(Protocol):
     @abstractmethod
-    def Dense(self, units: int) -> IDense:
+    def Dense(self, units: int) -> Callable[[ITensors], ITensors]:
         ...
 
 
@@ -116,15 +99,15 @@ class ITensorFlow(Protocol):
 
 tensorflow.config.list_physical_devices("CPU")
 
-pattern_input_004064: Tuple[Tuple[NDArray, NDArray], Tuple[NDArray, NDArray]] = tensorflow.keras.datasets.mnist.load_data()
+pattern_input_004063: Tuple[Tuple[NDArray, NDArray], Tuple[NDArray, NDArray]] = tensorflow.keras.datasets.mnist.load_data()
 
-label_train: NDArray = pattern_input_004064[0][1]
+label_train: NDArray = pattern_input_004063[0][1]
 
-label_test: NDArray = pattern_input_004064[1][1]
+label_test: NDArray = pattern_input_004063[1][1]
 
-image_train: NDArray = pattern_input_004064[0][0]
+image_train: NDArray = pattern_input_004063[0][0]
 
-image_test: NDArray = pattern_input_004064[1][0]
+image_test: NDArray = pattern_input_004063[1][0]
 
 image_train_flat: NDArray = (image_train.reshape(60000, 784)) / 255
 
@@ -132,5 +115,7 @@ image_test_flat: NDArray = (image_test.reshape(10000, 784)) / 255
 
 inputs: ITensors = tensorflow.keras.Input(shape = array("l", [784]))
 
-dense: Any = tensorflow.keras.layers.Dense(units = 10)
+dense: Callable[[ITensors], ITensors] = tensorflow.keras.layers.Dense(units = 10)
+
+outputs: ITensors = dense(inputs)
 

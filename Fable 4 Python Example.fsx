@@ -32,7 +32,7 @@ type IDataSets =
 
 type ITensors = ITensors
 
-type IDense= IDense
+type IDense = ITensors -> ITensors
 
 type Layers =
     [<NamedParams(fromIndex = 0)>]
@@ -76,9 +76,9 @@ let image_test_flat = (image_test.reshape [| 10000; 784 |]).``/`` 255
 
 let inputs = tensorflow.keras.Input(shape = [| 784 |])
 
-let dense : obj = tensorflow.keras.layers.Dense(units = 10)
+let dense = tensorflow.keras.layers.Dense(units = 10)
 
-// let outputs : obj = dense?(inputs)
+let outputs = dense inputs
 
 // let model : obj = tensorflow?keras?Model(inputs, outputs, "Digit_Recognition")
 
