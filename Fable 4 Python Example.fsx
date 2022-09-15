@@ -35,7 +35,6 @@ type ITensors = ITensors
 type IDense= IDense
 
 type Layers =
-    // it would be nice if this could be a named param
     [<NamedParams(fromIndex = 0)>]
     abstract Dense:
         units:int ->
