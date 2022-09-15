@@ -5,7 +5,7 @@ from typing import (Protocol, Tuple)
 from fable_modules.fable_library.seq import (length, head)
 from fable_modules.fable_library.string import (to_console, interpolate, printf)
 from fable_modules.fable_library.types import (Array, uint8)
-from fable_modules.fable_library.util import IEnumerable
+from fable_modules.fable_library.util import IEnumerable_1
 
 class IPhysicalDevice(Protocol):
     @property
@@ -27,7 +27,7 @@ class IConfig(Protocol):
 
 class IMnist(Protocol):
     @abstractmethod
-    def load_data(self) -> Tuple[Tuple[IEnumerable[IEnumerable[IEnumerable[uint8]]], IEnumerable[uint8]], Tuple[IEnumerable[IEnumerable[IEnumerable[uint8]]], IEnumerable[uint8]]]:
+    def load_data(self) -> Tuple[Tuple[IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]], IEnumerable_1[uint8]], Tuple[IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]], IEnumerable_1[uint8]]]:
         ...
 
 
@@ -59,15 +59,15 @@ class ITensorFlow(Protocol):
 
 tensorflow.config.list_physical_devices("CPU")
 
-pattern_input_004037: Tuple[Tuple[IEnumerable[IEnumerable[IEnumerable[uint8]]], IEnumerable[uint8]], Tuple[IEnumerable[IEnumerable[IEnumerable[uint8]]], IEnumerable[uint8]]] = tensorflow.keras.datasets.mnist.load_data()
+pattern_input_004037: Tuple[Tuple[IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]], IEnumerable_1[uint8]], Tuple[IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]], IEnumerable_1[uint8]]] = tensorflow.keras.datasets.mnist.load_data()
 
-label_train: IEnumerable[uint8] = pattern_input_004037[0][1]
+label_train: IEnumerable_1[uint8] = pattern_input_004037[0][1]
 
-label_test: IEnumerable[uint8] = pattern_input_004037[1][1]
+label_test: IEnumerable_1[uint8] = pattern_input_004037[1][1]
 
-image_train: IEnumerable[IEnumerable[IEnumerable[uint8]]] = pattern_input_004037[0][0]
+image_train: IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]] = pattern_input_004037[0][0]
 
-image_test: IEnumerable[IEnumerable[IEnumerable[uint8]]] = pattern_input_004037[1][0]
+image_test: IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]] = pattern_input_004037[1][0]
 
 to_console(interpolate("Image count: %P()", [length(image_train)]))
 
@@ -78,4 +78,16 @@ to_console(printf("Line count: %A"))(arg)
 arg: int = length(head(head(image_train))) or 0
 
 to_console(printf("Column count: %A"))(arg)
+
+image_train_flat: IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]] = image_train.reshape(60000, 784)
+
+to_console(interpolate("Image flat count: %P()", [length(image_train_flat)]))
+
+arg: int = length(head(image_train_flat)) or 0
+
+to_console(printf("Line flat count: %A"))(arg)
+
+arg: int = length(head(head(image_train_flat))) or 0
+
+to_console(printf("Column flat count: %A"))(arg)
 

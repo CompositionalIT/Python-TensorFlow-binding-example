@@ -1,4 +1,4 @@
-#r"nuget: Fable.Core, 4.0.0-snake-island-alpha-007"
+#r"nuget: Fable.Core, 4.0.0-theta-001"
 
 open Fable.Core
 
@@ -27,12 +27,12 @@ type ITensorFlow =
 
 module NDArray =
     [<Emit("$2.reshape($0, $1)")>]
-    let reshape<'a> : int -> int -> INDArray<'a> -> INDArray<'a> = nativeOnly
+    let reshape<'a> (a: int) (b: int) (arr: INDArray<'a>) : INDArray<'a> = nativeOnly
 
 [<ImportAll("tensorflow")>]
 let tensorflow: ITensorFlow = nativeOnly
 
-tensorflow.config.list_physical_devices "CPU"
+tensorflow.config.list_physical_devices("CPU")
 
 let ((image_train, label_train), (image_test, label_test)) = 
    tensorflow.keras.datasets.mnist.load_data()
@@ -41,7 +41,10 @@ printfn $"Image count: {(image_train |> Seq.length)}"
 printfn "Line count: %A" (image_train |> Seq.head |> Seq.length)
 printfn "Column count: %A" (image_train |> Seq.head |> Seq.head |> Seq.length)
 
-// let image_train_flat = image_train |> NDArray.reshape<_> 60000 784 // / 255f
+let image_train_flat = image_train |> NDArray.reshape<_> 60000 784 // / 255f
+
+printfn $"Image flat count: {(image_train_flat |> Seq.length)}"
+printfn "Line flat count: %A" (image_train_flat |> Seq.head |> Seq.length)
 
 // let image_test_flat = (image_test?reshape(10000,784)) / 255f
 
