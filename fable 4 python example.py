@@ -1,11 +1,10 @@
 from __future__ import annotations
 from abc import abstractmethod
+from array import array
 import tensorflow
-from typing import (Protocol, Tuple)
-from fable_modules.fable_library.seq import (length, head)
-from fable_modules.fable_library.string import (to_console, interpolate, printf)
-from fable_modules.fable_library.types import (Array, uint8)
-from fable_modules.fable_library.util import IEnumerable_1
+from typing import (Protocol, Tuple, Any, List)
+from fable_modules.fable_library.reflection import (TypeInfo, class_type, union_type)
+from fable_modules.fable_library.types import (Array, Union)
 
 class IPhysicalDevice(Protocol):
     @property
@@ -25,9 +24,18 @@ class IConfig(Protocol):
         ...
 
 
+def _expr0() -> TypeInfo:
+    return class_type("Fable 4 Python Example.NDArray", None, NDArray)
+
+
+class NDArray:
+    ...
+
+NDArray_reflection = _expr0
+
 class IMnist(Protocol):
     @abstractmethod
-    def load_data(self) -> Tuple[Tuple[IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]], IEnumerable_1[uint8]], Tuple[IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]], IEnumerable_1[uint8]]]:
+    def load_data(self) -> Tuple[Tuple[NDArray, NDArray], Tuple[NDArray, NDArray]]:
         ...
 
 
@@ -38,10 +46,59 @@ class IDataSets(Protocol):
         ...
 
 
+def _expr1() -> TypeInfo:
+    return union_type("Fable 4 Python Example.ITensors", [], ITensors, lambda: [[]])
+
+
+class ITensors(Union):
+    def __init__(self, tag: int, *fields: Any) -> None:
+        super().__init__()
+        self.tag: int = tag or 0
+        self.fields: Array[Any] = list(fields)
+
+    @staticmethod
+    def cases() -> List[str]:
+        return ["ITensors"]
+
+
+ITensors_reflection = _expr1
+
+def _expr2() -> TypeInfo:
+    return union_type("Fable 4 Python Example.IDense", [], IDense, lambda: [[]])
+
+
+class IDense(Union):
+    def __init__(self, tag: int, *fields: Any) -> None:
+        super().__init__()
+        self.tag: int = tag or 0
+        self.fields: Array[Any] = list(fields)
+
+    @staticmethod
+    def cases() -> List[str]:
+        return ["IDense"]
+
+
+IDense_reflection = _expr2
+
+class Layers(Protocol):
+    @abstractmethod
+    def Dense(self, units: int) -> IDense:
+        ...
+
+
 class IKeras(Protocol):
+    @abstractmethod
+    def Input(self, shape: Array[int]) -> ITensors:
+        ...
+
     @property
     @abstractmethod
     def datasets(self) -> IDataSets:
+        ...
+
+    @property
+    @abstractmethod
+    def layers(self) -> Layers:
         ...
 
 
@@ -59,35 +116,21 @@ class ITensorFlow(Protocol):
 
 tensorflow.config.list_physical_devices("CPU")
 
-pattern_input_004037: Tuple[Tuple[IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]], IEnumerable_1[uint8]], Tuple[IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]], IEnumerable_1[uint8]]] = tensorflow.keras.datasets.mnist.load_data()
+pattern_input_004064: Tuple[Tuple[NDArray, NDArray], Tuple[NDArray, NDArray]] = tensorflow.keras.datasets.mnist.load_data()
 
-label_train: IEnumerable_1[uint8] = pattern_input_004037[0][1]
+label_train: NDArray = pattern_input_004064[0][1]
 
-label_test: IEnumerable_1[uint8] = pattern_input_004037[1][1]
+label_test: NDArray = pattern_input_004064[1][1]
 
-image_train: IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]] = pattern_input_004037[0][0]
+image_train: NDArray = pattern_input_004064[0][0]
 
-image_test: IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]] = pattern_input_004037[1][0]
+image_test: NDArray = pattern_input_004064[1][0]
 
-to_console(interpolate("Image count: %P()", [length(image_train)]))
+image_train_flat: NDArray = (image_train.reshape(60000, 784)) / 255
 
-arg: int = length(head(image_train)) or 0
+image_test_flat: NDArray = (image_test.reshape(10000, 784)) / 255
 
-to_console(printf("Line count: %A"))(arg)
+inputs: ITensors = tensorflow.keras.Input(shape = array("l", [784]))
 
-arg: int = length(head(head(image_train))) or 0
-
-to_console(printf("Column count: %A"))(arg)
-
-image_train_flat: IEnumerable_1[IEnumerable_1[IEnumerable_1[uint8]]] = image_train.reshape(60000, 784)
-
-to_console(interpolate("Image flat count: %P()", [length(image_train_flat)]))
-
-arg: int = length(head(image_train_flat)) or 0
-
-to_console(printf("Line flat count: %A"))(arg)
-
-arg: int = length(head(head(image_train_flat))) or 0
-
-to_console(printf("Column flat count: %A"))(arg)
+dense: Any = tensorflow.keras.layers.Dense(units = 10)
 
