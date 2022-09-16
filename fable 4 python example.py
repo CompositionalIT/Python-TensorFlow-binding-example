@@ -48,10 +48,10 @@ class IDataSets(Protocol):
 
 
 def _expr1() -> TypeInfo:
-    return union_type("Fable 4 Python Example.ITensors", [], ITensors, lambda: [[]])
+    return union_type("Fable 4 Python Example.IKerasTensor", [], IKerasTensor, lambda: [[]])
 
 
-class ITensors(Union):
+class IKerasTensor(Union):
     def __init__(self, tag: int, *fields: Any) -> None:
         super().__init__()
         self.tag: int = tag or 0
@@ -59,14 +59,14 @@ class ITensors(Union):
 
     @staticmethod
     def cases() -> List[str]:
-        return ["ITensors"]
+        return ["IKerasTensor"]
 
 
-ITensors_reflection = _expr1
+IKerasTensor_reflection = _expr1
 
 class Layers(Protocol):
     @abstractmethod
-    def Dense(self, units: int) -> Callable[[ITensors], ITensors]:
+    def Dense(self, units: int) -> Callable[[IKerasTensor], IKerasTensor]:
         ...
 
 
@@ -138,9 +138,21 @@ class IHistory(Union):
 
 IHistory_reflection = _expr5
 
+class IOptimizers(Protocol):
+    @abstractmethod
+    def SGD(self, learning_rate: float) -> IOptimizer:
+        ...
+
+
+class ILosses(Protocol):
+    @abstractmethod
+    def SparseCategoricalCrossentropy(self, from_logits: bool) -> ILoss:
+        ...
+
+
 class IModel(Protocol):
     @abstractmethod
-    def compile(self, optimizer: IOptimizer, loss: ILoss, metrics: str) -> Callable[[ITensors], ITensors]:
+    def compile(self, optimizer: IOptimizer, loss: ILoss, metrics: str) -> Callable[[IKerasTensor], IKerasTensor]:
         ...
 
     @abstractmethod
@@ -158,11 +170,11 @@ class IModel(Protocol):
 
 class IKeras(Protocol):
     @abstractmethod
-    def Input(self, shape: Array[int]) -> ITensors:
+    def Input(self, shape: Array[int]) -> IKerasTensor:
         ...
 
     @abstractmethod
-    def Model(self, inputs: ITensors, outputs: ITensors, name: str) -> IModel:
+    def Model(self, inputs: IKerasTensor, outputs: IKerasTensor, name: str) -> IModel:
         ...
 
     @property
@@ -173,6 +185,16 @@ class IKeras(Protocol):
     @property
     @abstractmethod
     def layers(self) -> Layers:
+        ...
+
+    @property
+    @abstractmethod
+    def losses(self) -> ILosses:
+        ...
+
+    @property
+    @abstractmethod
+    def optimizers(self) -> IOptimizers:
         ...
 
 
@@ -190,15 +212,15 @@ class ITensorFlow(Protocol):
 
 tensorflow.config.list_physical_devices("CPU")
 
-pattern_input_004099: Tuple[Tuple[NDArray, NDArray], Tuple[NDArray, NDArray]] = tensorflow.keras.datasets.mnist.load_data()
+pattern_input_0040115: Tuple[Tuple[NDArray, NDArray], Tuple[NDArray, NDArray]] = tensorflow.keras.datasets.mnist.load_data()
 
-label_train: NDArray = pattern_input_004099[0][1]
+label_train: NDArray = pattern_input_0040115[0][1]
 
-label_test: NDArray = pattern_input_004099[1][1]
+label_test: NDArray = pattern_input_0040115[1][1]
 
-image_train: NDArray = pattern_input_004099[0][0]
+image_train: NDArray = pattern_input_0040115[0][0]
 
-image_test: NDArray = pattern_input_004099[1][0]
+image_test: NDArray = pattern_input_0040115[1][0]
 
 to_console(interpolate("Image train shape: %P()", [image_train.shape]))
 
@@ -208,19 +230,19 @@ to_console(interpolate("Image train flat shape: %P()", [image_train_flat.shape])
 
 image_test_flat: NDArray = (image_test.reshape(10000, 784)) / 255
 
-inputs: ITensors = tensorflow.keras.Input(shape = array("l", [784]))
+inputs: IKerasTensor = tensorflow.keras.Input(shape = array("l", [784]))
 
-dense: Callable[[ITensors], ITensors] = tensorflow.keras.layers.Dense(units = 10)
+dense: Callable[[IKerasTensor], IKerasTensor] = tensorflow.keras.layers.Dense(units = 10)
 
-outputs: ITensors = dense(inputs)
+outputs: IKerasTensor = dense(inputs)
 
 model: IModel = tensorflow.keras.Model(inputs = inputs, outputs = outputs, name = "Digit_Recognition")
 
-to_console(interpolate("Model summary: %P()", [model.summary()]))
-
-model.compile(optimizer = tensorflow.keras.optimizers.SGD(0.1), loss = tensorflow.keras.losses.SparseCategoricalCrossentropy(True), metrics = "accuracy")
+model.compile(optimizer = tensorflow.keras.optimizers.SGD(learning_rate = 0.1), loss = tensorflow.keras.losses.SparseCategoricalCrossentropy(from_logits = True), metrics = "accuracy")
 
 model.fit(x = image_train_flat, y = label_train, epochs = 1)
 
 model.evaluate(x = image_test_flat, y = label_test, verbose = 2)
+
+model.summary()
 

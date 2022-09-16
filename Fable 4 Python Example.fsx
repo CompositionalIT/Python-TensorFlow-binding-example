@@ -30,9 +30,9 @@ type IMnist =
 type IDataSets =
     abstract mnist : IMnist
 
-type ITensors = ITensors
+type IKerasTensor = IKerasTensor
 
-type IDense = ITensors -> ITensors
+type IDense = IKerasTensor -> IKerasTensor
 
 type Layers =
     [<NamedParams(fromIndex = 0)>]
@@ -41,9 +41,22 @@ type Layers =
             IDense
 
 type ISummary = ISummary
+
 type IOptimizer = IOptimizer
 type ILoss = ILoss
 type IHistory = IHistory
+
+type IOptimizers =
+    [<NamedParams(fromIndex = 0)>]
+    abstract SGD :
+        learning_rate:float ->
+            IOptimizer
+
+type ILosses =
+    [<NamedParams(fromIndex = 0)>]
+    abstract SparseCategoricalCrossentropy :
+        from_logits :bool ->
+            ILoss
 
 type IModel =
     abstract summary : unit -> ISummary
@@ -76,16 +89,19 @@ type IKeras =
     abstract Input: 
         // it would be nice if this could be a param array
         shape:int[] ->
-            ITensors
+            IKerasTensor
 
     abstract layers : Layers
 
     [<NamedParams(fromIndex = 0)>]
     abstract Model : 
-        inputs:ITensors *
-        outputs:ITensors *
+        inputs:IKerasTensor *
+        outputs:IKerasTensor *
         name: string ->
             IModel
+
+    abstract optimizers: IOptimizers
+    abstract losses: ILosses
 
 type ITensorFlow =
     abstract config : IConfig
@@ -100,7 +116,9 @@ let ((image_train, label_train), (image_test, label_test)) =
    tensorflow.keras.datasets.mnist.load_data()
 
 printfn $"Image train shape: {image_train.shape}"
+
 let image_train_flat = (image_train.reshape [| 60000; 784 |]).``/`` 255
+
 printfn $"Image train flat shape: {image_train_flat.shape}"
 
 let image_test_flat = (image_test.reshape [| 10000; 784 |]).``/`` 255
@@ -113,13 +131,13 @@ let outputs = dense inputs
 
 let model = tensorflow.keras.Model(inputs = inputs, outputs = outputs, name = "Digit_Recognition")
 
-printfn $"Model summary: {model.summary()}"
-
 model.compile(
-    tensorflow?keras?optimizers?SGD(0.1), 
-    tensorflow?keras?losses?SparseCategoricalCrossentropy(true),
+    tensorflow.keras.optimizers.SGD(0.1), 
+    tensorflow.keras.losses.SparseCategoricalCrossentropy(true),
     "accuracy")
 
 model.fit(image_train_flat, label_train, epochs = 1)
 
 model.evaluate(image_test_flat, label_test, verbose = 2)
+
+model.summary()
