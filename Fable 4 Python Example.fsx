@@ -12,7 +12,7 @@ type IConfig =
 
 type NDArray =
     [<Emit("$0.reshape($1...)")>]
-    member this.reshape([<ParamList>] args: int[]): NDArray = nativeOnly
+    member this.reshape([<ParamList>] args : int[]): NDArray = nativeOnly
     [<Emit("$0.ndim")>]
     member this.ndim : int = nativeOnly
     [<Emit("$0.shape")>]
@@ -25,7 +25,7 @@ type NDArray =
     member this.toArray<'a>() : array<'a> = nativeOnly
 
 type IMnist =
-    abstract load_data: unit -> (NDArray * NDArray) * (NDArray * NDArray)
+    abstract load_data : unit -> (NDArray * NDArray) * (NDArray * NDArray)
 
 type IDataSets =
     abstract mnist : IMnist
@@ -36,9 +36,38 @@ type IDense = ITensors -> ITensors
 
 type Layers =
     [<NamedParams(fromIndex = 0)>]
-    abstract Dense:
+    abstract Dense :
         units:int ->
             IDense
+
+type ISummary = ISummary
+type IOptimizer = IOptimizer
+type ILoss = ILoss
+type IHistory = IHistory
+
+type IModel =
+    abstract summary : unit -> ISummary
+
+    [<NamedParams(fromIndex = 0)>]
+    abstract compile :
+        optimizer:IOptimizer *
+        loss:ILoss *
+        metrics: string ->
+            IDense
+
+    [<NamedParams(fromIndex = 0)>]
+    abstract fit :
+        x:NDArray *
+        y:NDArray *
+        epochs: int ->
+            IHistory
+
+    [<NamedParams(fromIndex = 0)>]
+    abstract evaluate :
+        x:NDArray *
+        y:NDArray *
+        verbose: int ->
+            int
 
 type IKeras =
     abstract datasets : IDataSets
@@ -51,26 +80,28 @@ type IKeras =
 
     abstract layers : Layers
 
+    [<NamedParams(fromIndex = 0)>]
+    abstract Model : 
+        inputs:ITensors *
+        outputs:ITensors *
+        name: string ->
+            IModel
+
 type ITensorFlow =
     abstract config : IConfig
     abstract keras : IKeras
 
 [<ImportAll("tensorflow")>]
-let tensorflow: ITensorFlow = nativeOnly
+let tensorflow : ITensorFlow = nativeOnly
 
 tensorflow.config.list_physical_devices("CPU")
 
 let ((image_train, label_train), (image_test, label_test)) = 
    tensorflow.keras.datasets.mnist.load_data()
 
-// printfn $"Image train shape: {image_train.shape}"
-// printfn $"Image test shape: {image_test.shape}"
-// printfn $"Label train shape: {label_train.shape}"
-
+printfn $"Image train shape: {image_train.shape}"
 let image_train_flat = (image_train.reshape [| 60000; 784 |]).``/`` 255
-
-// printfn $"Image train flat shape: {image_train_flat.shape}"
-// printfn $"First image: %A{image_train_flat.toArray<NDArray>() |> Array.head}" 
+printfn $"Image train flat shape: {image_train_flat.shape}"
 
 let image_test_flat = (image_test.reshape [| 10000; 784 |]).``/`` 255
 
@@ -80,15 +111,15 @@ let dense = tensorflow.keras.layers.Dense(units = 10)
 
 let outputs = dense inputs
 
-// let model : obj = tensorflow?keras?Model(inputs, outputs, "Digit_Recognition")
+let model = tensorflow.keras.Model(inputs = inputs, outputs = outputs, name = "Digit_Recognition")
 
-// model?summary()
+printfn $"Model summary: {model.summary()}"
 
-// model?compile(
-//     tensorflow?keras?optimizers?SGD(0.1f), 
-//     tensorflow?keras?losses?SparseCategoricalCrossentropy(true),
-//     "accuracy")
+model.compile(
+    tensorflow?keras?optimizers?SGD(0.1), 
+    tensorflow?keras?losses?SparseCategoricalCrossentropy(true),
+    "accuracy")
 
-// model?fit((image_train_flat?numpy()),label_train,1)
+model.fit(image_train_flat, label_train, epochs = 1)
 
-// model?evaluate(image_test_flat?numpy(), label_test, 2)
+model.evaluate(image_test_flat, label_test, verbose = 2)
