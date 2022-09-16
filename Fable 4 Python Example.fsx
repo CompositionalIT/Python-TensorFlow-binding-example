@@ -1,7 +1,6 @@
 #r"nuget: Fable.Core, 4.0.0-theta-001"
 
 open Fable.Core
-open Fable.Core.PyInterop
 
 type IPhysicalDevice =
     abstract name: string
